@@ -1,2 +1,4 @@
 # DruppelControler
-Derek
+Derek Meuwissen
+Bas van Olphen
+Peter Askey
