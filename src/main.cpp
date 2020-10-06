@@ -5,7 +5,8 @@
 WiFiClient wifiClient;
 PubSubClient mqttClient(wifiClient);
 
-int moistureSensorPin = 8;
+int moistureSensorPin = PIN_A0;
+int pumpPin = 1;
 
 long lastMessage = 0;
 int moisture = 0;
@@ -15,6 +16,7 @@ int soilMoistureThreshold = SOIL_MOISTURE_THRESHOLD;
 String baseTopic = String("Garden/" + ESP.getChipId());
 String moistureTopic = String(baseTopic + "/Moisture");
 String thresholdTopic = String(baseTopic + "/Config/Treshold");
+String subTopic = String(baseTopic + '/*');
 
 /**
  * The setup connects to the WiFi and sets the server for the MQTT client.
@@ -28,6 +30,11 @@ void setup() {
   mqttClient.setCallback(callback);
 }
 
+/**
+ * Ensures the wifi and mqtt remain connected. Then reads the sensor values.
+ * If the value is lower than the threshold, calls to water the plant.
+ * Every 5 minutes, publishes the latest moisture reading.
+ */ 
 void loop() {
   if(WiFi.isConnected() == false) {
     connectWifi();
@@ -36,7 +43,7 @@ void loop() {
     connectMqtt();
   }
 
-  moisture = digitalRead(moistureSensorPin);
+  moisture = analogRead(moistureSensorPin);
   if(moisture < soilMoistureThreshold) {
     // The plant is too dry, give it water.
   }
@@ -45,7 +52,7 @@ void loop() {
   // Check if 5 minutes have passed since the last message was sent so we don't spam the server with readings.
   if(timeElapsed - lastMessage > 300000) {
     lastMessage = timeElapsed;
-    // Send message to the right topic.
+    mqttClient.publish(moistureTopic.c_str(), String(moisture).c_str());
   }
 }
 
@@ -77,7 +84,7 @@ void connectMqtt() {
     Serial.print("Attempting MQTT connection.");
     if (mqttClient.connect("ESP8266Client", MQTT_USER, MQTT_PASSWORD)) {
       Serial.println("Connected to MQTT broker.");
-      mqttClient.subscribe(thresholdTopic.c_str());
+      mqttClient.subscribe(baseTopic.c_str());
     } else {
       Serial.printf("Failed, rc=%s.Retrying in 2 seconds.\n", mqttClient.state());
       delay(2000);
@@ -85,6 +92,23 @@ void connectMqtt() {
   }
 }
 
+/**
+ * The callback is called whenever a message is recieved on any subscribed topic. Garden/ESPID/*
+ * Depending on the specific topic, it will either forcefully water the plant 
+ * or overwrite the moistureThreshold at which it will be automatically watered.
+ */
 void callback(char* topic, byte* payload, unsigned int length) {
+  if(topic == thresholdTopic.c_str())
+  {
+    overWriteThreshold(payload, length);
+  }
+}
 
+/**
+ * Converts the given payload to an int and sets it as the new threshold.
+ */
+void overWriteThreshold(byte* payload, unsigned int length){
+  payload[length] = '\0';
+  int newThreshold = atoi((char*)payload);
+  soilMoistureThreshold = newThreshold;
 }
