@@ -1,3 +1,8 @@
+/** 
+ * This file is part of De-Druppel/DruppelController 
+ * For license information, please view the LICENSE file that was distributed with this source code. 
+ */ 
+
 #include <Arduino.h>
 #include <PubSubClient.h>
 #include <credentials.h>
