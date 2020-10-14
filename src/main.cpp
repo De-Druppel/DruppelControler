@@ -11,9 +11,8 @@ const char* thresholdTopic;
 const char* subscriptionTopic;
 
 void setup() { 
-  pubsubClient = configureMQTTClient(pubsubClient,wifiClient,MQTT_HOST,MQTT_PORT);  
   initializeTopics();
-  pubsubClient.setCallback(callback);
+  pubsubClient = configureMQTTClient(pubsubClient,wifiClient,MQTT_HOST,MQTT_PORT);  
 }
 
 void loop() {
@@ -56,6 +55,8 @@ void connectMQTT(const char* mqttId, char* mqttUser, char* mqttPassword)
   {
     pubsubClient.subscribe(subscriptionTopic);
   }
+
+  pubsubClient.setCallback(callback);
 }
 
 bool isMQTTConnected()
