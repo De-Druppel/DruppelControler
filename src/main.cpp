@@ -14,6 +14,7 @@ String ESP_ID = String(ESP.getChipId());
 const char* moistureTopic;
 const char* thresholdTopic;
 const char* subscriptionTopic;
+float moisturePercentage;
 
 /// Setup is called once when the ESP8266 is starting.
 /// Used for configuration.
@@ -22,8 +23,21 @@ void setup() {
   pubsubClient = configureMQTTClient(pubsubClient,wifiClient,MQTT_HOST,MQTT_PORT);  
 }
 
+/*
+*get the currrent mositure percentage by making a measurement with the sensor
+*/
+void makeMoistureMeasurement() {
+  //read analog signal and create a mositure percentage
+  float sensor0 = analogRead(0);
+  float sensor0P = 100.00 - ( ( 100.00 * sensor0 ) / 1023.00 );
+  //set the current percentage
+  moisturePercentage = (int) sensor0P;
+}
+
 /// Loop is called every cycle of the ESP8266.
 void loop() {
+  makeMoistureMeasurement();
+
   if(!wifiClient.connected())
   {
     connectWifi(SSID,WIFI_PASSWORD);
