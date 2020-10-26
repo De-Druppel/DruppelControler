@@ -38,14 +38,16 @@ void makeMoistureMeasurement() {
 void loop() {
   makeMoistureMeasurement();
 
-  if(!wifiClient.connected())
-  {
+  if (wifiClient.connected()) {
+    //connect to the mqtt server only when wifi is connected and there is no mqtt connection
+    if (!pubsubClient.connected()) {
+      connectMQTT(ESP_ID.c_str(), MQTT_USER, MQTT_PASSWORD);
+    } else {
+		//publish last measurements
+		publishMeasurements();
+	}
+  } else { //if not connected: connect
     connectWifi(SSID,WIFI_PASSWORD);
-  }  
-
-  if(!isMQTTConnected())
-  {
-    connectMQTT(ESP_ID.c_str(), MQTT_USER,MQTT_PASSWORD);
   }
 
   delay(100);
@@ -57,13 +59,6 @@ void loop() {
 void connectWifi(char* ssid, char* wifiPassword)
 {
   WiFi.begin(ssid,wifiPassword);
-}
-
-/// Checks if the wifi is connected.
-/// returns: boolean that shows if the Wifi is connected.
-bool isWifiConnected()
-{
-  return WiFi.status() == WL_CONNECTED;
 }
 
 /// Configure the MQTT client.
@@ -95,11 +90,11 @@ void connectMQTT(const char* mqttId, char* mqttUser, char* mqttPassword)
   pubsubClient.setCallback(callback);
 }
 
-/// Check if the MQTT server is connected.
-/// returns: Boolean that shows if the MQTT client is connected.
-bool isMQTTConnected()
-{
-  return pubsubClient.connected();
+
+//method used for publishing last measurements to mqtt broker
+void publishMeasurements() {
+//publish last moisture percentage
+	pubsubClient.publish(moistureTopic, String(moisturePercentage));
 }
 
 /**
