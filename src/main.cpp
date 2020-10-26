@@ -56,8 +56,7 @@ void loop() {
 /// Connect to wifi
 /// @ssid SSID of the wifi network you want to connect to.
 /// @wifiPassword Password of the wifi network.
-void connectWifi(char* ssid, char* wifiPassword)
-{
+void connectWifi(char* ssid, char* wifiPassword) {
   WiFi.begin(ssid,wifiPassword);
 }
 
@@ -67,8 +66,7 @@ void connectWifi(char* ssid, char* wifiPassword)
 /// @mqttHost Hostname or ip of the MQTT server you want to connect to.
 /// @mqttPort Port that is used to connect to the MQTT server.
 /// returns: Configured PubSubClient object.
-PubSubClient configureMQTTClient(PubSubClient pubSubClient,WiFiClient wifiClient, char* mqttHost, uint16_t mqttPort)
-{
+PubSubClient configureMQTTClient(PubSubClient pubSubClient,WiFiClient wifiClient, char* mqttHost, uint16_t mqttPort) {
   PubSubClient pubsubClient(wifiClient);
   pubsubClient.setServer(mqttHost, mqttPort);  
   return pubsubClient;
@@ -79,11 +77,9 @@ PubSubClient configureMQTTClient(PubSubClient pubSubClient,WiFiClient wifiClient
 /// @mqttId Unique ID that is used for connecting to the MQTT server.
 /// @mqttUser Username for the MQTT server
 /// @mqttPassword Password for the MQTT server.
-void connectMQTT(const char* mqttId, char* mqttUser, char* mqttPassword)
-{
+void connectMQTT(const char* mqttId, char* mqttUser, char* mqttPassword) {
   pubsubClient.connect(mqttId,mqttUser,mqttPassword);
-  if(pubsubClient.connected())
-  {
+  if(pubsubClient.connected()) {
     pubsubClient.subscribe(subscriptionTopic);
   }
 
@@ -103,8 +99,7 @@ void publishMeasurements() {
  * or overwrite the moistureThreshold at which it will be automatically watered.
  */
 void callback(char* topic, byte* payload, unsigned int length) {
-  if(topic == thresholdTopic)
-  {
+  if(topic == thresholdTopic) {
     // Overwrite the threshold.
   }
 }
@@ -113,8 +108,7 @@ void callback(char* topic, byte* payload, unsigned int length) {
  * Use strings to set the topics for the pubSubClient and copies them to character arrays so the String objects
  * Don't have to be kept in memory.
  */
-void initializeTopics()
-{
+void initializeTopics() {
   String baseTopic = String("Garden/" + ESP.getChipId());
   moistureTopic = String(baseTopic + "/Moisture").c_str();
   thresholdTopic = String(baseTopic + "/Config/Treshold").c_str();
