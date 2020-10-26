@@ -30,9 +30,8 @@ void setup() {
 void makeMoistureMeasurement() {
   //read analog signal and create a mositure percentage
   float sensor0 = analogRead(MOISTURE_SENSOR_PIN);
-  float sensor0P = 100.00 - ( ( 100.00 * sensor0 ) / 1023.00 );
   //set the current percentage
-  moisturePercentage = (int) sensor0P;
+  moisturePercentage = 100.00 - ( ( 100.00 * sensor0 ) / 1023.00 );
 }
 
 /// Loop is called every cycle of the ESP8266.
