@@ -11,9 +11,9 @@
 WiFiClient wifiClient;
 PubSubClient pubsubClient;
 String ESP_ID = String(ESP.getChipId());
-const char* moistureTopic;
-const char* thresholdTopic;
-const char* subscriptionTopic;
+const char* MOISTURE_TOPIC;
+const char* TRESHOLD_TOPIC;
+const char* SUBSCRIPTION_TOPIC;
 float moisturePercentage;
 
 /// Setup is called once when the ESP8266 is starting.
@@ -109,8 +109,8 @@ void callback(char* topic, byte* payload, unsigned int length) {
  * Don't have to be kept in memory.
  */
 void initializeTopics() {
-  String baseTopic = String("Garden/" + ESP.getChipId());
-  moistureTopic = String(baseTopic + "/Moisture").c_str();
-  thresholdTopic = String(baseTopic + "/Config/Treshold").c_str();
-  subscriptionTopic = String(baseTopic + '/*').c_str();
+  String BASE_TOPIC = String("Garden/" + ESP.getChipId());
+  MOISTURE_TOPIC = String(BASE_TOPIC + "/Moisture").c_str();
+  TRESHOLD_TOPIC = String(BASE_TOPIC + "/Config/Treshold").c_str();
+  SUBSCRIPTION_TOPIC = String(BASE_TOPIC + '/*').c_str();
 }
