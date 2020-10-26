@@ -14,6 +14,7 @@ String ESP_ID = String(ESP.getChipId());
 const char* MOISTURE_TOPIC;
 const char* TRESHOLD_TOPIC;
 const char* SUBSCRIPTION_TOPIC;
+const int MOISTURE_SENSOR_PIN = A0;
 float moisturePercentage;
 
 /// Setup is called once when the ESP8266 is starting.
@@ -28,7 +29,7 @@ void setup() {
 */
 void makeMoistureMeasurement() {
   //read analog signal and create a mositure percentage
-  float sensor0 = analogRead(0);
+  float sensor0 = analogRead(MOISTURE_SENSOR_PIN);
   float sensor0P = 100.00 - ( ( 100.00 * sensor0 ) / 1023.00 );
   //set the current percentage
   moisturePercentage = (int) sensor0P;
