@@ -7,6 +7,7 @@
 #include <PubSubClient.h>
 #include <credentials.h>
 #include <ESP8266WiFi.h>
+#include <main.h>
 
 WiFiClient wifiClient;
 PubSubClient pubsubClient;
@@ -16,10 +17,12 @@ const char* TRESHOLD_TOPIC;
 const char* SUBSCRIPTION_TOPIC;
 const int MOISTURE_SENSOR_PIN = A0;
 float moisturePercentage;
+int wifiStatus = WL_IDLE_STATUS;
 
 /// Setup is called once when the ESP8266 is starting.
 /// Used for configuration.
 void setup() { 
+  Serial.begin(9600);
   initializeTopics();
   pubsubClient = configureMQTTClient(pubsubClient,wifiClient,MQTT_HOST,MQTT_PORT);  
 }
@@ -32,6 +35,7 @@ void makeMoistureMeasurement() {
   float sensor0 = analogRead(MOISTURE_SENSOR_PIN);
   //set the current percentage
   moisturePercentage = 100.00 - ( ( 100.00 * sensor0 ) / 1023.00 );
+  Serial.printf("Measured moisture at %.2f. \n", moisturePercentage);
 }
 
 /// Loop is called every cycle of the ESP8266.
@@ -50,14 +54,19 @@ void loop() {
     connectWifi(SSID,WIFI_PASSWORD);
   }
 
-  delay(100);
+  delay(1000);
 }
 
 /// Connect to wifi
 /// @ssid SSID of the wifi network you want to connect to.
 /// @wifiPassword Password of the wifi network.
 void connectWifi(char* ssid, char* wifiPassword) {
-  WiFi.begin(ssid,wifiPassword);
+  Serial.printf("Attempting to connect to Wifi SSID: %s. \n", ssid);
+  wifiStatus = WiFi.begin(ssid,wifiPassword);
+
+  if(wifiStatus == WL_CONNECTED){
+    Serial.println("Connection succesfully established.");
+  }
 }
 
 /// Configure the MQTT client.
@@ -80,7 +89,8 @@ PubSubClient configureMQTTClient(PubSubClient pubSubClient,WiFiClient wifiClient
 void connectMQTT(const char* mqttId, char* mqttUser, char* mqttPassword) {
   pubsubClient.connect(mqttId,mqttUser,mqttPassword);
   if(pubsubClient.connected()) {
-    pubsubClient.subscribe(subscriptionTopic);
+    Serial.println("Successfully connected to MQTT broker.");
+    pubsubClient.subscribe(SUBSCRIPTION_TOPIC);
   }
 
   pubsubClient.setCallback(callback);
@@ -90,16 +100,16 @@ void connectMQTT(const char* mqttId, char* mqttUser, char* mqttPassword) {
 //method used for publishing last measurements to mqtt broker
 void publishMeasurements() {
 //publish last moisture percentage
-	pubsubClient.publish(moistureTopic, String(moisturePercentage));
+	pubsubClient.publish(MOISTURE_TOPIC, String(moisturePercentage).c_str());
 }
 
 /**
- * The callback is called whenever a message is recieved on any subscribed topic. Garden/ESP_ID/*
+ * The callback is called whenever a message is recieved on any subscribed topic.
  * Depending on the specific topic, it will either forcefully water the plant 
  * or overwrite the moistureThreshold at which it will be automatically watered.
  */
 void callback(char* topic, byte* payload, unsigned int length) {
-  if(topic == thresholdTopic) {
+  if(topic == TRESHOLD_TOPIC) {
     // Overwrite the threshold.
   }
 }
@@ -112,5 +122,5 @@ void initializeTopics() {
   String BASE_TOPIC = String("Garden/" + ESP.getChipId());
   MOISTURE_TOPIC = String(BASE_TOPIC + "/Moisture").c_str();
   TRESHOLD_TOPIC = String(BASE_TOPIC + "/Config/Treshold").c_str();
-  SUBSCRIPTION_TOPIC = String(BASE_TOPIC + '/*').c_str();
+  SUBSCRIPTION_TOPIC = String(BASE_TOPIC + "/*").c_str();
 }
