@@ -1,4 +1,2 @@
 # DruppelControler
-Derek Meuwissen
-Bas van Olphen
-Peter Askey
+Deprecated please use DruppelControllerV2 instead. 
