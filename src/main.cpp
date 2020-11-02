@@ -19,6 +19,10 @@ const int MOISTURE_SENSOR_PIN = A0;
 float moisturePercentage;
 int wifiStatus = WL_IDLE_STATUS;
 
+//All variables used for the delays
+long previousMillis = 0;
+long publishMoistureInterval = 1000 * 60 * 5;
+
 /// Setup is called once when the ESP8266 is starting.
 /// Used for configuration.
 void setup() { 
@@ -40,6 +44,7 @@ void makeMoistureMeasurement() {
 
 /// Loop is called every cycle of the ESP8266.
 void loop() {
+  //We don't need a delay on making a measurement right?
   makeMoistureMeasurement();
 
   if (wifiClient.connected()) {
@@ -47,8 +52,14 @@ void loop() {
     if (!pubsubClient.connected()) {
       connectMQTT(ESP_ID.c_str(), MQTT_USER, MQTT_PASSWORD);
     } else {
-		//publish last measurements
-		publishMeasurements();
+	    //Add a delay on publishing the measurement
+        unsigned long currentMillis = millis();
+        if(currentMillis - previousMillis > publishMoistureInterval) {
+	      // save the last time you entered this delay
+          previousMillis = currentMillis;   
+	      //publish the readings
+		  publishMeasurements();
+        }
 	}
   } else { //if not connected: connect
     connectWifi(SSID,WIFI_PASSWORD);
